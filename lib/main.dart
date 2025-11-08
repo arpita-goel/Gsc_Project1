@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:gsc_project/pages/MedicalRecords.dart';
-import 'package:gsc_project/pages/Fitness.dart';
 import 'package:gsc_project/pages/Reminder.dart';
+import 'package:gsc_project/pages/fitness.dart';
+// import 'package:gsc_project/pages/homePageCareTaker.dart';
 import 'package:gsc_project/pages/notificationPage.dart';
 import 'package:gsc_project/pages/profile_page.dart';
 import 'package:gsc_project/pages/settings_page.dart';
-import 'package:gsc_project/pages/help_numbers.dart';
-import 'package:gsc_project/pages/HomepageCaretaker.dart';
-import 'package:gsc_project/pages/notifications.dart';
+// import 'package:gsc_project/pages/notifications.dart';
 import 'firebase_options.dart';
 import 'package:gsc_project/pages/new_Account.dart';
 import 'package:gsc_project/pages/home_page.dart';
@@ -19,9 +18,15 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:gsc_project/pages/location.dart';
+// import 'package:gsc_project/pages/location.dart';
+import 'package:gsc_project/pages/location_page.dart';
 import 'package:gsc_project/pages/help_numbers.dart';
+import 'services/notification_service.dart' as notif_service;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:gsc_project/pages/notifications.dart' as notif_page;
 
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
@@ -29,6 +34,12 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize flutter_local_notifications plugin
+  const AndroidInitializationSettings initializationSettingsAndroid =AndroidInitializationSettings('@mipmap/ic_launcher');
+  final InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
   await checkAndRequestBatteryOptimization();
   await initializeBackgroundService();
     final service = FlutterBackgroundService();
@@ -37,8 +48,9 @@ void main() async {
     service.startService();
   }
 
-  await NotificationService.initialize(); 
-    runApp(MyApp());
+  await notif_service.NotificationService.initialize(); 
+  await notif_page.NotificationService.initialize();
+  runApp(MyApp());
 }
 
 Future<void> checkAndRequestBatteryOptimization() async {
@@ -72,7 +84,7 @@ Future<void> initializeBackgroundService() async {
       onStart: _onBackgroundServiceStart,
       autoStart: true,
       isForegroundMode: true,
-      notificationChannelId: 'background_service',
+      notificationChannelId: 'foreground_service_channel',
       initialNotificationTitle: 'Background Service Running',
       initialNotificationContent: 'Listening for fall detection...',
       foregroundServiceNotificationId: 888,
@@ -127,18 +139,19 @@ class MyApp extends StatelessWidget {
       title: 'Flutter App',
       initialRoute: '/',
       routes: {
-        '/': (context) => SplashScreen(),
+         '/': (context) => SplashScreen(),
         '/new_account': (context) => NewAccountPage(),
         '/user_info': (context) => UserInfoPage(),
         '/home': (context) => HomePage(),
-        '/medicalRecords': (context) => MedicalRecords(),
-        '/location': (context) =>  LocationPage(),
+        '/MedicalRecords': (context) => MedicalRecords(),
+        // '/location': (context) =>  LocationPage(),
         '/helpNumbers': (context) => HelpNumbersPage(),
         '/notificationpage': (context) => NotificationsPage(),
         '/profilepage': (context) => ProfilePage(),
         '/settingspage': (context) => SettingsPage(),
         '/fitnessPage': (context) => FitnessPage(),
-        '/homeCaretaker': (context) => HomepageCaretaker(),
+        // '/homeCaretaker': (context) => HomepageCaretaker(),
+        '/locationpage': (context) => LocationPage(),
         '/reminderpage': (context) => ReminderPage(),
       },
       theme: ThemeData(),
