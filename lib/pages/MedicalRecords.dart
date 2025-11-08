@@ -26,17 +26,45 @@ class MyApp extends StatelessWidget {
 }
 
 class MedicalRecords extends StatefulWidget {
+  //  final String firebaseUID;
   const MedicalRecords({super.key});
 
   @override
-  _MedicalRecordsState createState() => _MedicalRecordsState();
+  MedicalRecordsState createState() => MedicalRecordsState();
 }
 
-class _MedicalRecordsState extends State<MedicalRecords> {
+class MedicalRecordsState extends State<MedicalRecords> {
   bool _isUploading = false;
+
+  late String elderlyUID;
+  bool isLoading = true;
+
+@override
+  void initState() {
+    super.initState();
+    // initializeUID();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (args != null && args['firebaseUID'] != null) {
+      elderlyUID = args['firebaseUID'];
+      print("📦 UID from arguments: $elderlyUID");
+    } else {
+      final user = FirebaseAuth.instance.currentUser;
+      elderlyUID = user?.uid ?? '';
+      print("🔐 Defaulting to current user's UID: $elderlyUID");
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  });
+
+
+
+  }
+
   Future<void> pickExtractAndUpload() async {
-
-
     try {
       setState(() => _isUploading = true);
 
@@ -62,10 +90,10 @@ class _MedicalRecordsState extends State<MedicalRecords> {
       // Step 3: Upload to backend
       final user = FirebaseAuth.instance.currentUser;
       final idToken = await user?.getIdToken();
-      final firebaseUID = user?.uid ?? '';
+      // final firebaseUID = user?.uid ?? '';
       var request = http.MultipartRequest(
         "POST",
-        Uri.parse("https://zindagigo.onrender.com/api/medical-records/upload"),
+        Uri.parse("https://zindagigo-1gr2.onrender.com/api/medical-records/upload"),
        
           //in the place of 10.10.226.179   give your ipconfig(run ipconfig in cmd and copy ipv4 ) if you want to run this on real device
         // 10.0.2.2  this is for emulator
@@ -74,7 +102,7 @@ class _MedicalRecordsState extends State<MedicalRecords> {
         // Replace with your server URL
       )
         ..headers['Authorization'] = 'Bearer $idToken'
-        ..fields['firebaseUID'] = firebaseUID
+        ..fields['firebaseUID'] = elderlyUID
         ..fields['title'] = "Uploaded Record"
         ..fields['processedText'] = extractedText
         ..fields['fileType'] = 'image'
@@ -96,7 +124,22 @@ class _MedicalRecordsState extends State<MedicalRecords> {
           .showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
+  // Future<void> initializeUID() async {
+  //   if (widget.firebaseUID.isNotEmpty) {
+  //     // Coming from caretaker → use the passed firebaseUID
+  //     elderlyUID = widget.firebaseUID;
+  //     print("👴 Using elderlyUID passed from login: $elderlyUID");
+  //   } else {
+  //     // Coming from elderly → use FirebaseAuth to get their UID
+  //     final user = FirebaseAuth.instance.currentUser;
+  //     elderlyUID = user?.uid ?? '';
+  //     print("🔐 Defaulting to current user's UID: $elderlyUID");
+  //   }
 
+  //   setState(() {
+  //     isLoading = false;
+  //   });
+  // }
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -429,7 +472,8 @@ class _MedicalRecordsState extends State<MedicalRecords> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CategoryRecordsPage(category: title),
+            builder: (context) => CategoryRecordsPage(category: title,
+                                                  firebaseUID:elderlyUID),
           ),
         );
       },
