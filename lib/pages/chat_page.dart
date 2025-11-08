@@ -31,7 +31,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> sendMessage(String userMessage) async {
     final response = await http.post(
-      Uri.parse('https://zindagigo.onrender.com/api/chat'),
+      Uri.parse('https://zindagigo-1gr2.onrender.com/api/chat'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "message": userMessage,
