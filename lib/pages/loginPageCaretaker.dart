@@ -1,12 +1,16 @@
+import 'dart:convert';
+// import 'package:gsc_project/pages/home_page.dart';
+import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gsc_project/main.dart';
 import 'package:gsc_project/pages/homePageCareTaker.dart';
 import 'package:gsc_project/colors/app_colors.dart';
 import 'package:gsc_project/pages/login_by_phoneno.dart';
-import '../services/mongo_service.dart';
-import '../services/auth_service.dart';
-import 'userInfo.dart';
+// import '../services/mongo_service.dart';
+// import '../services/auth_service.dart';
+// import 'userInfo.dart';
+import 'dart:async';
 
 void main() {
   runApp(const MyApp());
@@ -16,10 +20,10 @@ class LoginPageCaretaker extends StatefulWidget {
   const LoginPageCaretaker({super.key});
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  LoginPageState createState() => LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPageCaretaker> {
+class LoginPageState extends State<LoginPageCaretaker> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -27,33 +31,95 @@ class _LoginPageState extends State<LoginPageCaretaker> {
 
   Future<void> loginWithEmail() async {
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const HomepageCaretaker()),
-        (Route<dynamic> route) => false,
+
+      String? token = await userCredential.user!.getIdToken();
+        print("Token from Firebase: $token");
+      final response = await http.post(
+        Uri.parse("https://zindagigo-1gr2.onrender.com/api/users/login"),
+        body: jsonEncode({
+          "token": token,
+        }),
+        headers: {'Content-Type': 'application/json'},
       );
+   print("Login API status code: ${response.statusCode}");
+    print("Login API body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        try {
+  
+  print("Login response: $data");
+} catch (e) {
+  print("Error decoding login response: $e");
+  print("Raw body: ${response.body}");
+}
+        String role = data['role'];
+        // String userId = data['userId'];
+
+        if (role == 'caretaker') {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+                builder: (_) => HomepageCaretaker(
+                      firebaseUID: data['elderlyUID'],
+                      token: token?.toString() ?? '',
+                    )),
+            (route) => false,
+          );
+        }
+        // } else if (role == 'elderly') {
+        //   Navigator.pushReplacement(
+        //     context,
+        //     MaterialPageRoute(
+        //       builder: (context) => HomePage(userId: userId),
+        //     ),
+        //   );
+        // }
+        else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Unknown user role')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed')),
+        );
+      }
+      // Navigator.pushAndRemoveUntil(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => const HomepageCaretaker()),
+      //   (Route<dynamic> route) => false,
+      // );
     } catch (e) {
       print("Login Error: $e");
     }
   }
 
-  void loginWithGoogle(BuildContext context) async {
-    var usern = await AuthService().signInWithGoogle();
-    if (usern?.user != null) {
-      String email = usern!.user!.email!;
-      bool exists = await MongoService().checkIfEmailExists(email);
-      if (exists) {
-        Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (_) => const HomepageCaretaker()));
-      } else {
-        Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (_) => const UserInfoPage()));
-      }
-    }
+  // void loginWithGoogle(BuildContext context) async {
+  //   var usern = await AuthService().signInWithGoogle();
+  //   if (usern?.user != null) {
+  //     String email = usern!.user!.email!;
+  //     bool exists = await MongoService().checkIfEmailExists(email);
+  //     if (exists) {
+  //       Navigator.pushReplacement(context,
+  //           MaterialPageRoute(builder: (_) => const HomepageCaretaker()));
+  //     } else {
+  //       Navigator.pushReplacement(
+  //           context, MaterialPageRoute(builder: (_) => const UserInfoPage()));
+  //     }
+  //   }
+  // }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -93,7 +159,8 @@ class _LoginPageState extends State<LoginPageCaretaker> {
               ),
               SizedBox(height: screenHeight * 0.01),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFBDC8),
                   border: Border.all(color: const Color(0xFFD485A0), width: 2),
@@ -132,8 +199,7 @@ class _LoginPageState extends State<LoginPageCaretaker> {
                         BorderSide(color: AppColors.lineColor, width: 3.0),
                   ),
                   focusedBorder: UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: AppColors.pink, width: 3.0),
+                    borderSide: BorderSide(color: AppColors.pink, width: 3.0),
                   ),
                 ),
                 validator: (value) {
@@ -160,8 +226,7 @@ class _LoginPageState extends State<LoginPageCaretaker> {
                         BorderSide(color: AppColors.lineColor, width: 3.0),
                   ),
                   focusedBorder: UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: AppColors.pink, width: 3.0),
+                    borderSide: BorderSide(color: AppColors.pink, width: 3.0),
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -187,8 +252,8 @@ class _LoginPageState extends State<LoginPageCaretaker> {
                 onPressed: loginWithEmail,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.lineColor,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 35, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 35, vertical: 10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -216,7 +281,9 @@ class _LoginPageState extends State<LoginPageCaretaker> {
                   IconButton(
                     icon: Image.asset("lib/imagesOrlogo/Google.png"),
                     iconSize: screenWidth * 0.03,
-                    onPressed: () => loginWithGoogle(context),
+                    onPressed: () {
+                      // loginWithGoogle(context);
+                    },
                   ),
                   SizedBox(width: screenWidth * 0.05),
                   IconButton(
@@ -232,7 +299,7 @@ class _LoginPageState extends State<LoginPageCaretaker> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const LoginByPhoneno()),
+                            builder: (context) => const LoginByPhoneno()),
                       );
                     },
                   ),
