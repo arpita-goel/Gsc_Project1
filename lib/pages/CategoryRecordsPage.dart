@@ -7,7 +7,8 @@ import 'dart:convert';
 
 class CategoryRecordsPage extends StatefulWidget {
   final String category;
-  const CategoryRecordsPage({super.key, required this.category});
+ final String firebaseUID;
+const CategoryRecordsPage({super.key, required this.category, required this.firebaseUID});
 
   @override
   _CategoryRecordsPageState createState() => _CategoryRecordsPageState();
@@ -22,11 +23,18 @@ class _CategoryRecordsPageState extends State<CategoryRecordsPage> {
    
     
     final idToken = await user?.getIdToken();
-final uri = Uri.parse("https://zindagigo.onrender.com/api/medical-records?category=${widget.category}");
+final uri = Uri.parse("https://zindagigo-1gr2.onrender.com/api/medical-records?category=${widget.category}&firebaseUID=${widget.firebaseUID}");
 print("Fetching records from: $uri");
 
     final response = await http.get(uri, headers: {'Authorization': 'Bearer $idToken'}).timeout(Duration(seconds: 10)
     );
+
+
+print("Category: ${widget.category}");
+print("firebaseUID: ${widget.firebaseUID}");
+print("Token: $idToken");
+print("URI: $uri");
+
 
       if (response.statusCode == 200) {
       setState(() {
@@ -43,6 +51,9 @@ print("Fetching records from: $uri");
   @override
   void initState() {
     super.initState();
+     print("📁 CategoryRecordsPage loaded");
+  print("➡️ Category: ${widget.category}");
+  print("➡️ FirebaseUID used for fetching: ${widget.firebaseUID}");
     fetchRecords();
   }
 
