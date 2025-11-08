@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gsc_project/colors/app_colors.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:gsc_project/pages/Banking.dart';
+import 'package:gsc_project/pages/GroupsPage.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:gsc_project/pages/notifications.dart';
@@ -11,7 +13,7 @@ import 'package:gsc_project/pages/chat_page.dart';
 import 'welcome_page.dart';
 import 'package:torch_light/torch_light.dart';
 import 'package:gsc_project/pages/Entertainment.dart';
-import 'package:gsc_project/pages/Fitness.dart';
+import 'package:gsc_project/pages/fitness.dart';
 import 'package:gsc_project/pages/MedicalRecords.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 // import 'package:url_launcher/url_launcher.dart';
@@ -57,15 +59,18 @@ class _HomePageState extends State<HomePage> {
       _selectedIndex = index;
     });
 
-    if (index == 0) {
+    if (index == 1) {
+      _startListening();
+    } else if (index == 2) {
+      Navigator.pushNamed(context, '/settingspage');
+    } 
+    else if (index == 0) {
       Navigator.pushNamed(context, '/profilepage');
     }
-    else if (index == 1) {
-      _startListening();
-    }
-    else if (index == 2) {
-      Navigator.pushNamed(context, '/settingspage');
-    }
+    
+    else{
+      Navigator.pushNamed(context, '/locationpage');
+}
   }
 
   @override
@@ -193,7 +198,7 @@ class _HomePageState extends State<HomePage> {
   void _makeCall() async {
     try {
       print("Starting phone call...");
-      await platform.invokeMethod('makeCall', {'phoneNumber': '+917814644755'});
+      await platform.invokeMethod('makeCall', {'phoneNumber': '+91'});
       print("Phone call initiated.");
 
       LocationPermission permission = await Geolocator.checkPermission();
@@ -203,7 +208,7 @@ class _HomePageState extends State<HomePage> {
         String fallbackMessage =
             "⚠️ Emergency! Possible fall detected.\n📍 Location unavailable (permission denied).";
         final fallbackUrl = Uri.parse(
-            "https://wa.me/917814644755?text=${Uri.encodeComponent(fallbackMessage)}");
+            "https://wa.me/91?text=${Uri.encodeComponent(fallbackMessage)}");
         if (await canLaunchUrl(fallbackUrl)) {
           print("Launching fallback WhatsApp message without location...");
           bool launched = await launchUrl(fallbackUrl,
@@ -231,7 +236,7 @@ class _HomePageState extends State<HomePage> {
       String message =
           "⚠️ Emergency! Possible fall detected.\n📍 Location: $address\n🗺️ Map: $mapUrl";
       final whatsappUrl = Uri.parse(
-          "https://wa.me/917814644755?text=${Uri.encodeComponent(message)}");
+          "https://wa.me/91?text=${Uri.encodeComponent(message)}");
 
       if (await canLaunchUrl(whatsappUrl)) {
         print("Launching WhatsApp message with location...");
@@ -418,6 +423,7 @@ class _HomePageState extends State<HomePage> {
               title: const Text("Home"),
               onTap: () {
                 Navigator.pop(context);
+                // Navigator.pushNamed(context, '/home');
               },
             ),
             ListTile(
@@ -632,19 +638,24 @@ class _HomePageState extends State<HomePage> {
                                     setState(() {
                                       _isCompleted = !_isCompleted;
                                     });
-                                    final id = NotificationService.tappedNotificationId;
+                                    final id = NotificationService
+                                        .tappedNotificationId;
                                     if (id != null) {
-                                      NotificationService.cancelNotification(id);
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      NotificationService.cancelNotification(
+                                          id);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
                                         SnackBar(
                                             content: Text('Task Completed')),
                                       );
                                     } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
                                         SnackBar(
                                             content: Text('No More Tasks')),
                                       );
                                     }
+
                                     widget.onCompleteReminder?.call(title);
                                   },
                                   child: Container(
@@ -990,7 +1001,16 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () 
+                          
+                          {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const ChatGroupsPage()),
+                          );
+                        },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFFF5F5),
                             shape: RoundedRectangleBorder(
@@ -1035,7 +1055,15 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+
+                              Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const BankingInfoPage()),
+                          );
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFFF5F5),
                             shape: RoundedRectangleBorder(
@@ -1074,27 +1102,33 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+          // Place the chatbot button above everything else using a Stack
           Stack(
             children: [
-              Align(
-                alignment: Alignment.bottomRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 20, bottom: 30),
+              Positioned(
+                bottom: 30,
+                right: 20,
+                child: SizedBox(
+                  width: 76,
+                  height: 66.503,
                   child: IconButton(
                     onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => ChatPage()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ChatPage()),
+                      );
                     },
                     icon: Image.asset(
                       'lib/imagesOrlogo/Chatbot.png',
-                      width: 76,
-                      height: 66.503,
+                      fit: BoxFit.contain,
                     ),
                     iconSize: 76,
                     padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(
+                    constraints: const BoxConstraints(
                       minWidth: 76,
                       minHeight: 66.503,
+                      maxWidth: 76,
+                      maxHeight: 66.503,
                     ),
                   ),
                 ),
