@@ -5,13 +5,17 @@ import 'package:gsc_project/pages/welcome_page.dart';
 import 'package:gsc_project/services/auth_service.dart';
 
 class HomepageCaretaker extends StatefulWidget {
-  const HomepageCaretaker({super.key});
+  final String firebaseUID;
+  final String token;
+
+  const HomepageCaretaker(
+      {required this.firebaseUID, required this.token, super.key});
 
   @override
-  _HomepageCaretakerState createState() => _HomepageCaretakerState();
+  HomepageCaretakerState createState() => HomepageCaretakerState();
 }
 
-class _HomepageCaretakerState extends State<HomepageCaretaker> {
+class HomepageCaretakerState extends State<HomepageCaretaker> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
@@ -24,9 +28,16 @@ class _HomepageCaretakerState extends State<HomepageCaretaker> {
       Navigator.pushNamed(context, '/reminderpage');
     }
   }
+
   void logout(BuildContext context) async {
     await AuthService().signOut();
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => WelcomePage()));
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (_) => WelcomePage()));
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -104,7 +115,8 @@ class _HomepageCaretakerState extends State<HomepageCaretaker> {
             DrawerHeader(
               //decoration: BoxDecoration(color: AppColors.drawerColor),
               decoration: BoxDecoration(
-                color: AppColors.drawerColor, // Make sure it blends with the drawer background
+                color: AppColors
+                    .drawerColor, // Make sure it blends with the drawer background
               ),
               child: Row(
                 children: [
@@ -170,7 +182,7 @@ class _HomepageCaretakerState extends State<HomepageCaretaker> {
               ),
               title: const Text("Home"),
               onTap: () {
-                Navigator.pop(context); 
+                Navigator.pop(context);
               },
             ),
             ListTile(
@@ -205,7 +217,7 @@ class _HomepageCaretakerState extends State<HomepageCaretaker> {
               onTap: () {
                 Navigator.pushNamed(context, '/helpNumbers');
               },
-            ),            
+            ),
             ListTile(
               leading: Image.asset(
                 'lib/imagesOrlogo/profile.png',
@@ -277,20 +289,28 @@ class _HomepageCaretakerState extends State<HomepageCaretaker> {
         child: Column(
           children: [
             _buildCardButton(
-              screenWidth, 
-              screenHeight, 
-              'Medical Records', 
-              'lib/imagesOrlogo/MedicalRecords.png', () => Navigator.pushNamed(context, '/medicalRecords'), 
-              const Color(0xFFFFFDFE), const Color(0xFFD4859E)
-            ),
+                screenWidth,
+                screenHeight,
+                'Medical Records',
+                'lib/imagesOrlogo/MedicalRecords.png',
+                () => Navigator.pushNamed(
+                      context,
+                      '/MedicalRecords',
+                      arguments: {
+                        'firebaseUID': widget.firebaseUID, 
+                      },
+                    ),
+                const Color(0xFFFFFDFE),
+                const Color(0xFFD4859E)),
             SizedBox(height: screenHeight * 0.02),
             _buildCardButton(
-              screenWidth, 
-              screenHeight, 
-              'Fitness', 
-              'lib/imagesOrlogo/Yoga.png', () => Navigator.pushNamed(context, '/fitnessPage'),
-              const Color(0xFFFFFDFE), const Color(0xFFD4859E)
-            ),
+                screenWidth,
+                screenHeight,
+                'Fitness',
+                'lib/imagesOrlogo/Yoga.png',
+                () => Navigator.pushNamed(context, '/fitnessPage'),
+                const Color(0xFFFFFDFE),
+                const Color(0xFFD4859E)),
             SizedBox(height: screenHeight * 0.02),
             Container(
               width: screenWidth * 0.85,
@@ -321,12 +341,18 @@ class _HomepageCaretakerState extends State<HomepageCaretaker> {
                     height: screenHeight * 0.25,
                     child: ListView(
                       children: [
-                        _buildReminderTile('paracetamol', 'Sun, 16 June 4:00 pm', true, screenWidth),
-                        _buildReminderTile('paracetamol lorem ipsum', 'Tue, 18 June 6:00 pm', false, screenWidth),
-                        _buildReminderTile('paracetamol', 'Sun, 16 June 4:00 pm', true, screenWidth),
-                        _buildReminderTile('paracetamol', 'Sun, 16 June 4:00 pm', true, screenWidth),
-                        _buildReminderTile('paracetamol lorem ipsum', 'Tue, 18 June 6:00 pm', false, screenWidth),
-                        _buildReminderTile('paracetamol', 'Sun, 16 June 4:00 pm', true, screenWidth),
+                        _buildReminderTile('paracetamol',
+                            'Sun, 16 June 4:00 pm', true, screenWidth),
+                        _buildReminderTile('paracetamol lorem ipsum',
+                            'Tue, 18 June 6:00 pm', false, screenWidth),
+                        _buildReminderTile('paracetamol',
+                            'Sun, 16 June 4:00 pm', true, screenWidth),
+                        _buildReminderTile('paracetamol',
+                            'Sun, 16 June 4:00 pm', true, screenWidth),
+                        _buildReminderTile('paracetamol lorem ipsum',
+                            'Tue, 18 June 6:00 pm', false, screenWidth),
+                        _buildReminderTile('paracetamol',
+                            'Sun, 16 June 4:00 pm', true, screenWidth),
                       ],
                     ),
                   ),
@@ -359,7 +385,8 @@ class _HomepageCaretakerState extends State<HomepageCaretaker> {
         child: Padding(
           padding: EdgeInsets.only(bottom: screenHeight * 0.01),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03, vertical: screenHeight * 0.01),
+            padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.03, vertical: screenHeight * 0.01),
             width: double.infinity,
             decoration: BoxDecoration(
               color: const Color(0xFFE2E0F0),
@@ -378,15 +405,18 @@ class _HomepageCaretakerState extends State<HomepageCaretaker> {
               showUnselectedLabels: false,
               items: [
                 BottomNavigationBarItem(
-                  icon: _buildNavBarIcon('lib/imagesOrlogo/settings.png', screenWidth),
+                  icon: _buildNavBarIcon(
+                      'lib/imagesOrlogo/settings.png', screenWidth),
                   label: 'Settings',
                 ),
                 BottomNavigationBarItem(
-                  icon: _buildNavBarIcon('lib/imagesOrlogo/Reminder.png', screenWidth),
+                  icon: _buildNavBarIcon(
+                      'lib/imagesOrlogo/Reminder.png', screenWidth),
                   label: 'Reminder',
                 ),
                 BottomNavigationBarItem(
-                  icon: _buildNavBarIcon('lib/imagesOrlogo/Location.png', screenWidth),
+                  icon: _buildNavBarIcon(
+                      'lib/imagesOrlogo/Location.png', screenWidth),
                   label: 'Location',
                 ),
               ],
@@ -425,7 +455,14 @@ class _HomepageCaretakerState extends State<HomepageCaretaker> {
     );
   }
 
-  Widget _buildCardButton(double width, double height, String label, String imagePath, VoidCallback onTap, Color bgColor, Color bottomBorderColor) {
+  Widget _buildCardButton(
+      double width,
+      double height,
+      String label,
+      String imagePath,
+      VoidCallback onTap,
+      Color bgColor,
+      Color bottomBorderColor) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -465,8 +502,8 @@ class _HomepageCaretakerState extends State<HomepageCaretaker> {
     );
   }
 
-
-  Widget _buildReminderTile(String medicine, String time, bool isTaken, double width) {
+  Widget _buildReminderTile(
+      String medicine, String time, bool isTaken, double width) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: width * 0.015),
       padding: EdgeInsets.all(width * 0.03),
@@ -496,7 +533,9 @@ class _HomepageCaretakerState extends State<HomepageCaretaker> {
               ],
             ),
           ),
-          Text(time, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: width * 0.035)),
+          Text(time,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: width * 0.035)),
         ],
       ),
     );
